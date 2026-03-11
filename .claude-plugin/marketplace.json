@@ -1,0 +1,17 @@
+{
+  "name": "local-mind-plugins",
+  "owner": {
+    "name": "local-mind"
+  },
+  "plugins": [
+    {
+      "name": "local-mind",
+      "source": "./plugin",
+      "description": "Persistent, private, local-first memory for Claude Code using SQLite",
+      "version": "0.1.0",
+      "author": {
+        "name": "local-mind"
+      }
+    }
+  ]
+}

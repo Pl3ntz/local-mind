@@ -1,0 +1,82 @@
+const fs = require('node:fs');
+const path = require('node:path');
+const os = require('node:os');
+
+const SETTINGS_DIR = process.env.LOCAL_MIND_DIR || process.env.LOCAL_MEMORY_DIR || path.join(os.homedir(), '.local-mind');
+const SETTINGS_FILE = path.join(SETTINGS_DIR, 'settings.json');
+
+const DEFAULT_SETTINGS = {
+  skipTools: ['Read', 'Glob', 'Grep', 'TodoWrite', 'AskUserQuestion'],
+  captureTools: ['Edit', 'Write', 'Bash', 'Task'],
+  maxProfileItems: 5,
+  debug: false,
+  injectProfile: true,
+};
+
+function ensureSettingsDir() {
+  if (!fs.existsSync(SETTINGS_DIR)) {
+    fs.mkdirSync(SETTINGS_DIR, { recursive: true, mode: 0o700 });
+  }
+}
+
+function loadSettings() {
+  let settings = { ...DEFAULT_SETTINGS };
+  try {
+    if (fs.existsSync(SETTINGS_FILE)) {
+      const fileContent = fs.readFileSync(SETTINGS_FILE, 'utf-8');
+      settings = { ...settings, ...JSON.parse(fileContent) };
+    }
+  } catch (err) {
+    console.error(`Settings: Failed to load ${SETTINGS_FILE}: ${err.message}`);
+  }
+  const skipToolsEnv = process.env.LOCAL_MIND_SKIP_TOOLS || process.env.LOCAL_MEMORY_SKIP_TOOLS;
+  if (skipToolsEnv) {
+    settings = {
+      ...settings,
+      skipTools: skipToolsEnv.split(',').map(
+        (s) => s.trim(),
+      ),
+    };
+  }
+  if (process.env.LOCAL_MIND_DEBUG === 'true' || process.env.LOCAL_MEMORY_DEBUG === 'true') {
+    settings = { ...settings, debug: true };
+  }
+  return settings;
+}
+
+function saveSettings(settings) {
+  ensureSettingsDir();
+  const toSave = { ...settings };
+  fs.writeFileSync(SETTINGS_FILE, JSON.stringify(toSave, null, 2), { mode: 0o600 });
+}
+
+function shouldCaptureTool(toolName, settings) {
+  if (settings.skipTools.includes(toolName)) {
+    return false;
+  }
+  if (settings.captureTools && settings.captureTools.length > 0) {
+    return settings.captureTools.includes(toolName);
+  }
+  return true;
+}
+
+function debugLog(settings, message, data) {
+  if (settings.debug) {
+    const timestamp = new Date().toISOString();
+    console.error(
+      data
+        ? `[${timestamp}] ${message}: ${JSON.stringify(data)}`
+        : `[${timestamp}] ${message}`,
+    );
+  }
+}
+
+module.exports = {
+  SETTINGS_DIR,
+  SETTINGS_FILE,
+  DEFAULT_SETTINGS,
+  loadSettings,
+  saveSettings,
+  shouldCaptureTool,
+  debugLog,
+};

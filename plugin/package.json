@@ -1,0 +1,14 @@
+{
+  "name": "local-mind",
+  "version": "0.1.0",
+  "description": "Persistent local memory for Claude Code using SQLite",
+  "private": true,
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "better-sqlite3": "^12.6.2"
+  },
+  "keywords": ["claude-code", "plugin", "memory", "sqlite", "local"],
+  "license": "MIT"
+}
